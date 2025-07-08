@@ -1,18 +1,20 @@
 import datetime
 import json
+import pathlib
 import re
 
 from collections import Counter
 from typing import Any
-from pathlib import Path
 
 
-class ChatExportReader:
-    def __init__(self, chat_export_file, app) -> None:
-        self.chat_export_file: str = chat_export_file
+class ChatParser:
+    def __init__(self, path_to_chat: pathlib.Path, app) -> None:
+        self.path_to_chat: pathlib.Path = path_to_chat
         self.app: str = app
-        self.file_extension: str = chat_export_file.split(".")[-1]
-        self.conversation: list[dict[str, Any]] = []
-        self.raw_conversation: str | Any = None
-        self.senders: list[str] = []
+        self.chat: list[dict[str, Any]] = []
+        self.raw_chat: str | Any = None
+        self.participants: list[str] = []
         self.metadata: dict[str, Any] = {}
+
+    def parse_chat(self):
+        print("Parsing chat...")
