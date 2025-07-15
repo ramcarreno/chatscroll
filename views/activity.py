@@ -3,7 +3,7 @@ import pandas as pd
 
 from dateutil.relativedelta import relativedelta
 
-from chatscroll.plots import plot_msg_over_time, plot_user_msg_stats
+from chatscroll.plots import plot_msg_over_time, plot_user_msg_stats, plot_msg_over_days, plot_msg_over_hours
 
 
 def get_df(chat):
@@ -42,8 +42,9 @@ def activity():
 
     # Calculations for second row
     range_days = (end_date - start_date).days + 1
-    most_active_day = df.groupby('date').agg(ct=('message', 'count')).ct.idxmax()
-    most_active_count = df.groupby('date').agg(ct=('message', 'count')).ct.max()
+    df_by_date = df.groupby('date').agg(msg=('message', 'count'))
+    most_active_day = df_by_date.msg.idxmax()
+    most_active_count = df_by_date.msg.max()
 
     # Second row of metrics
     c21, c22, c23 = st.columns(3)
@@ -51,11 +52,18 @@ def activity():
     c22.metric("% Active Days", f"{(len(df.date.unique()) / range_days)*100:.2f}%")
     c23.metric("Most Active Day", f"{most_active_day}", help=f"{most_active_count} messages were sent on that day")
 
-    # User message rankings
+    # User/time period messaging stats
     st.subheader("🗣️📆 Who's talking — and when?")
-    col1, col2 = st.columns(2)
+    p11, p12 = st.columns(2)
 
-    with col1:
+    with p11:
         st.plotly_chart(plot_user_msg_stats(df), use_container_width=True)
-    with col2:
+    with p12:
         st.plotly_chart(plot_msg_over_time(df), use_container_width=True)
+
+    # Daily messages plot
+    st.plotly_chart(plot_msg_over_days(df_by_date.reset_index()), use_container_width=True)
+
+    # Hourly messages plot
+    df_by_hours = df.groupby('hour').agg(msg=('message', 'count')).reset_index()
+    st.plotly_chart(plot_msg_over_hours(df_by_hours))

@@ -1,8 +1,14 @@
 import pandas as pd
 import plotly.graph_objects as go
+import plotly.express as px
 
 
 def plot_user_msg_stats(df):
+    """
+    Plots user message counts, user average words per message and user average characters per message.
+    Takes the chat DataFrame with precomputed word_count and char_count columns that can be filtered by user.
+    The three different traces of the plot are toggleable with a dropdown menu.
+    """
     # Group by user message count and word/character averages
     user_talk_stats = df.groupby('user').agg(
         message_count=('message', 'count'),
@@ -34,7 +40,7 @@ def plot_user_msg_stats(df):
                      method="update",
                      args=[
                          {"visible": [True, False, False]},
-                         {"yaxis.title.text": "Message Count"}
+                         {"yaxis.title.text": "Messages"}
                      ]),
                 dict(label="Words",
                      method="update",
@@ -52,7 +58,7 @@ def plot_user_msg_stats(df):
         )],
         title="Users Messaging Statistics",
         xaxis_title="User",
-        yaxis_title="Message Count",
+        yaxis_title="Messages",
         height=500,
         margin=dict(l=40, r=40, t=60, b=40)
     )
@@ -61,6 +67,11 @@ def plot_user_msg_stats(df):
 
 
 def plot_msg_over_time(df):
+    """
+    Plots message counts over yearly, monthly periods and day of the week.
+    Takes the chat DataFrame with precomputed date periods and weekdays that can also be filtered by user.
+    The three different traces of the plot are toggleable with a dropdown menu.
+    """
     # Group counts by time period
     by_year = df.groupby("year").agg(msg=("message", "count")).reset_index()
     by_month = df.groupby("year_month").agg(msg=("message", "count")).reset_index()
@@ -114,6 +125,77 @@ def plot_msg_over_time(df):
         yaxis_title="Message Count",
         height=500,
         margin=dict(l=40, r=40, t=60, b=40)
+    )
+
+    return fig
+
+
+def plot_msg_over_days(df):
+    """
+    Simple Plotly Express plot that tracks message frequency at the day level.
+    Takes directly 'date' and 'msg' from a pre-grouped DataFrame that can be filtered by user.
+    Includes a range slider for more trackable and accurate zooming.
+    """
+    fig = px.line(
+        df, x='date', y='msg',
+        title='Messages per Day',
+        labels={'date': 'Date', 'msg': 'Messages'}
+    )
+    fig.update_layout(xaxis_rangeslider_visible=True)
+
+    return fig
+
+
+def plot_msg_over_hours(df):
+    """
+    Polar plot showing a clock-like representation of messaging frequency.
+    Takes directly 'hour' and 'msg' from a pre-grouped DataFrame that can be filtered by user.
+    """
+    # Predefine hour labels
+    hour_labels = [
+        "12 AM", "1 AM", "2 AM", "3 AM", "4 AM", "5 AM", "6 AM", "7 AM",
+        "8 AM", "9 AM", "10 AM", "11 AM", "12 PM", "1 PM", "2 PM", "3 PM",
+        "4 PM", "5 PM", "6 PM", "7 PM", "8 PM", "9 PM", "10 PM", "11 PM"
+    ]
+
+    # Add degrees for each hour for polar plot, 15º per hour
+    # And custom hover labels
+    df["theta"] = df["hour"] * 15
+    df["hover_text"] = [f"Hour: {label}<br>Messages: {msg}" for label, msg in zip(hour_labels, df["msg"])]
+
+    # Init plot and trace
+    fig = go.Figure()
+    fig.add_trace(go.Barpolar(
+        r=df['msg'],
+        theta=df['theta'],
+        width=[15] * 24,
+        marker_color=df['msg'],
+        marker_colorscale='Plasma',
+        opacity=0.85,
+        text=df["hover_text"],
+        hoverinfo="text"
+    ))
+
+    # Layout setup
+    fig.update_layout(
+        title="Message Volume by Hour",
+        polar=dict(
+            angularaxis=dict(
+                direction="clockwise",
+                rotation=90,
+                tickmode='array',
+                tickvals=df["theta"],
+                ticktext=hour_labels,
+                tickfont=dict(size=10)
+            ),
+            radialaxis=dict(
+                visible=True,
+                showticklabels=False
+            )
+        ),
+        showlegend=False,
+        height=500,
+        margin=dict(t=50, b=30, l=30, r=30)
     )
 
     return fig
