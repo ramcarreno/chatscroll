@@ -34,9 +34,9 @@ def activity():
     # Add first row of metrics
     c11, c12, c13 = st.columns(3)
     c11.metric("Messages", len(df))
-    c12.metric("Active Users", len(st.session_state.users))
+    c12.metric("Active users", len(st.session_state.users))
     c13.metric(
-        "Date Range", f"{start_date} to {end_date}",
+        "Date range", f"{start_date} to {end_date}",
         help=f"Chat active for {range_bd.years} years, {range_bd.months} months and {range_bd.days} days"
     )
 
@@ -48,9 +48,9 @@ def activity():
 
     # Second row of metrics
     c21, c22, c23 = st.columns(3)
-    c21.metric("Messages per Day",  f"{len(df) / range_days:.2f}")
-    c22.metric("% Active Days", f"{(len(df.date.unique()) / range_days)*100:.2f}%")
-    c23.metric("Most Active Day", f"{most_active_day}", help=f"{most_active_count} messages were sent on that day")
+    c21.metric("Messages per day",  f"{len(df) / range_days:.2f}")
+    c22.metric("% Active days", f"{(len(df.date.unique()) / range_days)*100:.2f}%")
+    c23.metric("Most active day", f"{most_active_day}", help=f"{most_active_count} messages were sent on that day")
 
     # User/time period messaging stats
     st.subheader("🗣️📆 Who's talking — and when?")

@@ -18,11 +18,11 @@ def plot_user_msg_stats(df):
 
     # Init plot and add traces
     fig = go.Figure()
-    fig.add_trace(go.Bar(x=user_talk_stats["user"], y=user_talk_stats["message_count"], name='Total Messages',
+    fig.add_trace(go.Bar(x=user_talk_stats["user"], y=user_talk_stats["message_count"], name='Messages',
                          visible=True))
-    fig.add_trace(go.Bar(x=user_talk_stats["user"], y=user_talk_stats["avg_words"], name='Avg. Words per Message',
+    fig.add_trace(go.Bar(x=user_talk_stats["user"], y=user_talk_stats["avg_words"], name='Average words per message',
                          visible=False))
-    fig.add_trace(go.Bar(x=user_talk_stats["user"], y=user_talk_stats["avg_chars"], name='Avg. Characters per Message',
+    fig.add_trace(go.Bar(x=user_talk_stats["user"], y=user_talk_stats["avg_chars"], name='Average characters per message',
                          visible=False))
 
     # Setup dropdown buttons for each trace
@@ -46,17 +46,17 @@ def plot_user_msg_stats(df):
                      method="update",
                      args=[
                          {"visible": [False, True, False]},
-                         {"yaxis.title.text": "Average Words per Message"}
+                         {"yaxis.title.text": "Average words per message"}
                      ]),
                 dict(label="Characters",
                      method="update",
                      args=[
                          {"visible": [False, False, True]},
-                         {"yaxis.title.text": "Average Characters per Message"}
+                         {"yaxis.title.text": "Average characters per message"}
                      ]),
             ]
         )],
-        title="Users Messaging Statistics",
+        title="User messaging statistics",
         xaxis_title="User",
         yaxis_title="Messages",
         height=500,
@@ -119,10 +119,10 @@ def plot_msg_over_time(df):
                      ]),
             ]
         )],
-        title="Messages by Time Period",
+        title="Messages by time period",
         xaxis=dict(type="category"),
-        xaxis_title="Time Period",
-        yaxis_title="Message Count",
+        xaxis_title="Time period",
+        yaxis_title="Message count",
         height=500,
         margin=dict(l=40, r=40, t=60, b=40)
     )
@@ -178,7 +178,7 @@ def plot_msg_over_hours(df):
 
     # Layout setup
     fig.update_layout(
-        title="Message Volume by Hour",
+        title="Message volume by hour",
         polar=dict(
             angularaxis=dict(
                 direction="clockwise",
