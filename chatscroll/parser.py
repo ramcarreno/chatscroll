@@ -5,6 +5,22 @@ from io import StringIO
 from typing import Any
 
 
+# Timestamp parsing utils
+_TIMESTAMP_FORMATS = [
+    '%d.%m.%Y, %H:%M',
+    '%d/%m/%Y, %H:%M',
+    '%d/%m/%y, %H:%M',
+]
+
+def parse_timestamp(timestamp_str: str) -> datetime.datetime:
+    for fmt in _TIMESTAMP_FORMATS:
+        try:
+            return datetime.datetime.strptime(timestamp_str.strip(), fmt)
+        except ValueError:
+            continue
+    raise ValueError(f"Unrecognized timestamp format: {timestamp_str}")
+
+
 class ChatParser:
     """
     A parser for exported chat logs from messaging apps like WhatsApp or Telegram.
@@ -45,7 +61,7 @@ class ChatParser:
             try:
                 # Separate timestamp from the rest; cast to datetime
                 timestamp_str, rest = line.split(" - ", 1)
-                timestamp = datetime.datetime.strptime(timestamp_str, '%d.%m.%Y, %H:%M')
+                timestamp = parse_timestamp(timestamp_str)
 
                 # Process user & message fields
                 # TODO: manage line breaks as part of a single message

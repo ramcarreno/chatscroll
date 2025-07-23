@@ -1,6 +1,13 @@
+from collections import Counter
+
+import emoji
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
+from matplotlib import pyplot as plt
+
+from sklearn.feature_extraction.text import CountVectorizer
+from wordcloud import WordCloud
 
 
 def plot_user_msg_stats(df):
@@ -199,3 +206,38 @@ def plot_msg_over_hours(df):
     )
 
     return fig
+
+
+def get_word_frequencies(df, stopwords):
+    # Initialize the vectorizer and feed message corpus
+    vectorizer = CountVectorizer(lowercase=True, stop_words=stopwords)
+    corpus = vectorizer.fit_transform(df["message"])
+
+    # Obtain word counts array and then word frequencies in descending order
+    word_counts = corpus.sum(axis=0).A1
+    word_freq_sorted = sorted(
+        list(zip(vectorizer.get_feature_names_out(), word_counts)),
+        key=lambda x: x[1],
+        reverse=True
+    )
+
+    # Return entire list (can be filtered later)
+    return word_freq_sorted
+
+
+def plot_wordcloud(frequencies):
+    # Generate WordCloud
+    wc = WordCloud(width=800, height=400, background_color='white', colormap='tab10').generate_from_frequencies(
+        frequencies
+    )
+
+    # Display with matplotlib
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.imshow(wc, interpolation='bilinear')
+    ax.axis('off')
+
+    return fig
+
+
+def get_emoji_frequencies(df):
+    return Counter(sum(df["message"].apply(lambda text: [c for c in text if c in emoji.EMOJI_DATA]), []))
