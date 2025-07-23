@@ -29,6 +29,7 @@ def main():
         users = parser.users
 
         # Save useful params to session state and update
+        st.session_state.chatname = uploaded_file.name.split(".")[0]
         st.session_state.chat = chat
         st.session_state.users = users
         st.rerun()
