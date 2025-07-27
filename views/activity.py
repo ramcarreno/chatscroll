@@ -57,8 +57,16 @@ def activity():
     p11, p12 = st.columns(2)
 
     with p11:
+        st.markdown(
+            "<h6 style='text-align: left; font-weight: bold;'>User messaging statistics</h6>",
+            unsafe_allow_html=True
+        )
         st.plotly_chart(plot_user_msg_stats(df), use_container_width=True)
     with p12:
+        st.markdown(
+            "<h6 style='text-align: left; font-weight: bold;'>Messages by time period</h6>",
+            unsafe_allow_html=True
+        )
         st.plotly_chart(plot_msg_over_time(df), use_container_width=True)
 
     # Daily messages plot

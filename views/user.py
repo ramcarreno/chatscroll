@@ -3,7 +3,8 @@ import re
 import pandas as pd
 import streamlit as st
 
-from chatscroll.plots import get_word_frequencies, plot_wordcloud, plot_msg_over_time, get_emoji_frequencies
+from chatscroll.plots import get_word_frequencies, plot_wordcloud, plot_msg_over_time, get_emoji_frequencies, \
+    plot_msg_over_days, plot_msg_over_hours
 
 
 def get_df(chat):
@@ -84,11 +85,24 @@ def user():
         )
         st.pyplot(plot_wordcloud(dict(word_freqs[:n_words_slider])), use_container_width=True)
     with p12:
+        st.markdown(
+            "<h6 style='text-align: left; font-weight: bold;'>Messages by time period</h6>",
+            unsafe_allow_html=True
+        )
         st.plotly_chart(plot_msg_over_time(user_df), use_container_width=True)
+
+    # Daily messages plot
+    user_df_by_date = user_df.groupby('date').agg(msg=('message', 'count')).reset_index()
+    st.plotly_chart(plot_msg_over_days(user_df_by_date), use_container_width=True)
+
+    # Hourly messages plot
+    user_df_by_hours = user_df.groupby('hour').agg(msg=('message', 'count')).reset_index()
+    st.plotly_chart(plot_msg_over_hours(user_df_by_hours))
 
     # TODO:
     # Activity graph
     # Clock
     # Top emojis
     # Emoji frequency
+    # Filter df by time
     # Spammy words -> ratio of word count / messages

@@ -63,10 +63,10 @@ def plot_user_msg_stats(df):
                      ]),
             ]
         )],
-        title="User messaging statistics",
+        #title="User messaging statistics",
         xaxis_title="User",
         yaxis_title="Messages",
-        height=500,
+        height=450,
         margin=dict(l=40, r=40, t=60, b=40)
     )
 
@@ -126,11 +126,11 @@ def plot_msg_over_time(df):
                      ]),
             ]
         )],
-        title="Messages by time period",
+        #title="Messages by time period",
         xaxis=dict(type="category"),
         xaxis_title="Time period",
-        yaxis_title="Message count",
-        height=500,
+        yaxis_title="Messages",
+        height=450,
         margin=dict(l=40, r=40, t=60, b=40)
     )
 
@@ -145,7 +145,7 @@ def plot_msg_over_days(df):
     """
     fig = px.line(
         df, x='date', y='msg',
-        title='Messages per Day',
+        title='Messages per day',
         labels={'date': 'Date', 'msg': 'Messages'}
     )
     fig.update_layout(xaxis_rangeslider_visible=True)
@@ -241,3 +241,23 @@ def plot_wordcloud(frequencies):
 
 def get_emoji_frequencies(df):
     return Counter(sum(df["message"].apply(lambda text: [c for c in text if c in emoji.EMOJI_DATA]), []))
+
+
+def plot_top_n_emojis(frequencies, n):
+    # Create plotable df from frequencies
+    top_n = frequencies.most_common(n)
+    df = pd.DataFrame(top_n, columns=['Emoji', 'Frequency'])
+
+    # Barplot
+    fig = px.bar(df, x='Emoji', y='Frequency', text='Frequency',
+                 height=450)
+
+    # Layout setup
+    fig.update_traces(marker_color='mediumseagreen', textposition='outside')
+    fig.update_layout(
+        xaxis_title='Emoji',
+        yaxis_title='Frequency',
+        plot_bgcolor='white'
+    )
+
+    return fig
