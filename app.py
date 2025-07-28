@@ -28,6 +28,10 @@ def main():
         chat = parser.chat
         users = parser.users
 
+        if not chat or not users:
+            st.error("📄❌ The file could not be parsed. Please upload a WhatsApp chat exported as a .txt file.")
+            st.stop()
+
         # Save useful params to session state and update
         st.session_state.chatname = uploaded_file.name.split(".")[0]
         st.session_state.chat = chat

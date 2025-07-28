@@ -24,14 +24,35 @@ def user():
     st.header("User")
     df = get_df(st.session_state.chat)
 
-    # Start selectbox (default user selected by alphabetical order) and filter df by user
+    # Start user selectbox (default selected by alphabetical order) and filter df
     users = sorted(df["user"].unique())
     selected_user = st.selectbox("Select a user", users)
     user_df = df[df["user"] == selected_user]
 
+    # Calendar selector to filter date range
+    start_date, end_date = df["date"].min(), df["date"].max()
+    date_range = st.date_input(
+        label="Select a date range to filter messages",
+        value=(start_date, end_date),
+        min_value=start_date,
+        max_value=end_date,
+        format="MM.DD.YYYY",
+    )
+    if isinstance(date_range, tuple) and len(date_range) == 2:
+        start_date, end_date = date_range
+    elif isinstance(date_range, tuple) and len(date_range) == 1:
+        start_date = date_range[0]  # Only 1 element selected, fallback to start of range to maximum
+
+    # Filter df according to selected values
+    filtered_df = user_df[(user_df["date"] >= start_date) & (user_df["date"] <= end_date)]
+    if len(filtered_df) == 0:
+        st.error("Looks like there were no messages sent during that time range. Try selecting different dates before "
+                 "continuing.")
+        st.stop()
+
     # Selectbox for stopword settings
     sw_choice = st.selectbox(
-        "Stopword filtering (affects word counts)",
+        label="Stopword filtering (affects word counts)",
         options=["Use default stopwords (English)", "Add custom list", "None"]
     )
 
@@ -39,7 +60,7 @@ def user():
         stopwords = "english"
     elif sw_choice == "Add custom list":
         custom_input = st.text_area(
-            "Please enter custom stopwords (comma, space or newline separated):",
+            label="Please enter custom stopwords (comma, space or newline separated):",
             height=80
         )
         stopwords = [w.strip().lower() for w in re.split(r'[,\n\s]+', custom_input) if w.strip()]
@@ -47,28 +68,36 @@ def user():
         stopwords = None
 
     # Extract word frequencies according to stopword selection and emoji frequencies
-    word_freqs = get_word_frequencies(user_df, stopwords)
-    emoji_freqs = get_emoji_frequencies(user_df)
+    word_freqs = get_word_frequencies(filtered_df, stopwords)
+    emoji_freqs = get_emoji_frequencies(filtered_df)
 
     # General overview
     st.subheader(f"👤 Overview of _{selected_user}_")
 
     # First row of metrics
     c11, c12, c13 = st.columns(3)
-    c11.metric("User messages", len(user_df),
-               help=f"**{user_df["word_count"].mean():.2f}** avg. words per message"
-                    f"\n\n**{user_df["char_count"].mean():.2f}** avg. characters per message"
+    c11.metric("User messages", len(filtered_df),
+               help=f"**{filtered_df["word_count"].mean():.2f}** avg. words per message"
+                    f"\n\n**{filtered_df["char_count"].mean():.2f}** avg. characters per message"
                )
-    c12.metric("Participation (% of total messages)", f"{(len(user_df) / len(df)) * 100:.2f}%")
-    c13.metric("Active days", len(user_df.date.unique()),
-               help=f"**{len(user_df.date.unique()) / len(df.date.unique()) * 100:.2f}%** of total chat active days")
+    c12.metric("Participation (% of total messages)", f"{(len(filtered_df) / len(filtered_df)) * 100:.2f}%")
+    c13.metric("Active days", len(filtered_df.date.unique()),
+               help=f"**{len(filtered_df.date.unique()) / len(filtered_df.date.unique()) * 100:.2f}%** of total active "
+                    f"chat days")
 
     # Second row of metrics
     c21, c22, c23 = st.columns(3)
-    c21.metric("Last message date", user_df["date"].max().strftime("%Y-%m-%d"))
-    c22.metric("Top word",  word_freqs[0][0])
-    c23.metric("Top emoji", f"{emoji_freqs.most_common(1)[0][0]}",
-               help=f"Used **{emoji_freqs.most_common(1)[0][1]}** times")  # TODO: correct bug with multilayered emojis
+    c21.metric("Last message date", filtered_df["date"].max().strftime("%Y-%m-%d"))
+    if word_freqs:
+        top_word, top_word_count = word_freqs[0]
+        c22.metric("Top word", f"{top_word}", help=f"Used **{top_word_count}** times")
+    else:
+        c22.metric("Top word", "None", help="**Warning**: No words outside stopword list!")
+    if emoji_freqs:  # TODO: correct bug with multilayered emojis
+        top_emoji, top_emoji_count = emoji_freqs.most_common(1)[0]
+        c23.metric("Top emoji", f"{top_emoji}", help=f"Used **{top_emoji_count}** times")
+    else:
+        c23.metric("Top emoji", "None", help="No emojis used during the selected time period.")
 
     # Wordcloud + messaging frequency plots
     st.subheader(f"📖️🕰️ What's _{selected_user}_ saying... and when?")
@@ -79,30 +108,30 @@ def user():
             "<h6 style='text-align: left; font-weight: bold;'>Wordcloud</h6>",
             unsafe_allow_html=True
         )
-        n_words_slider = st.slider(
-            "Number of words to display",
-            min_value=5, max_value=200, value=100, step=1
-        )
-        st.pyplot(plot_wordcloud(dict(word_freqs[:n_words_slider])), use_container_width=True)
+        if word_freqs:
+            n_words_slider = st.slider(
+                "Number of words to display",
+                min_value=5, max_value=200, value=100, step=1
+            )
+            st.pyplot(plot_wordcloud(dict(word_freqs[:n_words_slider])), use_container_width=True)
+        else:
+            st.warning("No words to show right now. Try a different date range or change your stopword list.")
     with p12:
         st.markdown(
             "<h6 style='text-align: left; font-weight: bold;'>Messages by time period</h6>",
             unsafe_allow_html=True
         )
-        st.plotly_chart(plot_msg_over_time(user_df), use_container_width=True)
+        st.plotly_chart(plot_msg_over_time(filtered_df), use_container_width=True)
 
     # Daily messages plot
-    user_df_by_date = user_df.groupby('date').agg(msg=('message', 'count')).reset_index()
-    st.plotly_chart(plot_msg_over_days(user_df_by_date), use_container_width=True)
+    filtered_df_by_date = filtered_df.groupby('date').agg(msg=('message', 'count')).reset_index()
+    st.plotly_chart(plot_msg_over_days(filtered_df_by_date), use_container_width=True)
 
     # Hourly messages plot
-    user_df_by_hours = user_df.groupby('hour').agg(msg=('message', 'count')).reset_index()
-    st.plotly_chart(plot_msg_over_hours(user_df_by_hours))
+    filtered_df_by_hours = filtered_df.groupby('hour').agg(msg=('message', 'count')).reset_index()
+    st.plotly_chart(plot_msg_over_hours(filtered_df_by_hours))
 
     # TODO:
-    # Activity graph
-    # Clock
-    # Top emojis
-    # Emoji frequency
-    # Filter df by time
+    # User top emojis
+    # User emoji frequency
     # Spammy words -> ratio of word count / messages

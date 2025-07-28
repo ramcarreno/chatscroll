@@ -210,20 +210,22 @@ def plot_msg_over_hours(df):
 
 def get_word_frequencies(df, stopwords):
     # Initialize the vectorizer and feed message corpus
-    vectorizer = CountVectorizer(lowercase=True, stop_words=stopwords)
-    corpus = vectorizer.fit_transform(df["message"])
+    try:
+        vectorizer = CountVectorizer(lowercase=True, stop_words=stopwords)
+        corpus = vectorizer.fit_transform(df["message"])
 
-    # Obtain word counts array and then word frequencies in descending order
-    word_counts = corpus.sum(axis=0).A1
-    word_freq_sorted = sorted(
-        list(zip(vectorizer.get_feature_names_out(), word_counts)),
-        key=lambda x: x[1],
-        reverse=True
-    )
+        # Obtain word counts array and then word frequencies in descending order
+        word_counts = corpus.sum(axis=0).A1
+        word_freq_sorted = sorted(
+            list(zip(vectorizer.get_feature_names_out(), word_counts)),
+            key=lambda x: x[1],
+            reverse=True
+        )
 
-    # Return entire list (can be filtered later)
-    return word_freq_sorted
-
+        # Return entire list (can be filtered later)
+        return word_freq_sorted
+    except ValueError:
+        return []
 
 def plot_wordcloud(frequencies):
     # Generate WordCloud
