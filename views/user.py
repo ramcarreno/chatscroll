@@ -22,7 +22,7 @@ def get_df(chat):
 def user():
     # Init page and load df
     st.header("User")
-    df = get_df(st.session_state.chat)
+    df = get_df(st.session_state["chat"])
 
     # Start user selectbox (default selected by alphabetical order) and filter df
     users = sorted(df["user"].unique())

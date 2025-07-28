@@ -21,10 +21,10 @@ def get_df(chat):
 def activity():
     # Init page and load df
     st.header("Activity")
-    df = get_df(st.session_state.chat)
+    df = get_df(st.session_state["chat"])
 
     # General overview
-    st.subheader(f"📊 Overview of _{st.session_state.chatname}_") # TODO: chat name
+    st.subheader(f"📊 Overview of _{st.session_state["chatname"]}_") # TODO: chat name
 
     # Calculations for first row
     start_date = df["time"].min().date()
@@ -34,7 +34,7 @@ def activity():
     # Add first row of metrics
     c11, c12, c13 = st.columns(3)
     c11.metric("Messages", len(df))
-    c12.metric("Active users", len(st.session_state.users))
+    c12.metric("Active users", len(st.session_state["users"]))
     c13.metric(
         "Date range", f"{start_date} to {end_date}",
         help=f"Chat active for **{range_bd.years} years, {range_bd.months} months and {range_bd.days} days**"

@@ -19,7 +19,7 @@ def get_df(chat):
 def content():
     # Init page and load df
     st.header("Content")
-    df = get_df(st.session_state.chat)
+    df = get_df(st.session_state["chat"])
 
     # Calendar selector to filter date range
     start_date, end_date = df["date"].min(), df["date"].max()
