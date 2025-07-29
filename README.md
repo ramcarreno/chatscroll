@@ -2,7 +2,8 @@
 
 **ChatScroll** is a lightweight dashboard for analyzing WhatsApp chats. It parses a previously exported `.txt` chat file 
 and shows stats for the whole chat and individual users. It also includes a search functionality and local LLM support 
-via Ollama, so you can ask any questions about your chat—and all completely offline!
+via Ollama, so you can ask any questions about your chat—and all completely offline, meaning your data stays in your 
+device!
 
 ## Installation
 
@@ -30,7 +31,7 @@ By default, the app will run in `localhost:8501`. If you want to change the port
 ```bash
 export STREAMLIT_SERVER_PORT=[your port of choice]
 ```
-or run the app with
+or run the app with:
 ```bash
 poetry run streamlit run app.py --server.port [your port of choice]
 ```
@@ -56,9 +57,9 @@ done to skip messages that only contain placeholders (such as `<Media omitted>`)
 - Chats over 200MB are not supported (soft limit set for performance reasons).
 - Supported timestamp formats are:
 ```
-'%d.%m.%Y, %H:%M'
-'%d/%m/%Y, %H:%M'
-'%d/%m/%y, %H:%M'
+%d.%m.%Y, %H:%M
+%d/%m/%Y, %H:%M
+%d/%m/%y, %H:%M
 ```
 Other formats might exist depending on your device's locale. If your chat can't be parsed, open an issue or let me know,
 I'll add support.
