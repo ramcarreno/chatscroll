@@ -10,7 +10,7 @@ device**!
 ### Prerequisites
 - Python 3.10 or higher
 - Poetry ([installation guide](https://python-poetry.org/docs/#installation))
-- Ollama ([installation guide](https://ollama.com/download))
+- Ollama (optional) ([installation guide](https://ollama.com/download))
 
 ### Steps
 1. Clone this repo and access its root directory
@@ -22,7 +22,13 @@ cd chatscroll
 ```bash
 poetry install
 ```
-3. Finally, run the app:
+3. If you plan on using the LLM chatting module, pull one or more Ollama models from the 
+[Ollama library](https://ollama.com/library). I recommend `llama3.1:8b` (requires around 6GB RAM) or `gemma2:2b` (≈3GB)
+if your machine is on the low end, although note it will perform worse.
+```bash
+ollama pull [model name]
+```
+4. Finally, run the app:
 ```bash
 poetry run streamlit run app.py
 ```
