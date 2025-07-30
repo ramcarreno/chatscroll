@@ -10,6 +10,7 @@ device**!
 ### Prerequisites
 - Python 3.10 or higher
 - Poetry ([installation guide](https://python-poetry.org/docs/#installation))
+- Ollama ([installation guide](https://ollama.com/download))
 
 ### Steps
 1. Clone this repo and access its root directory

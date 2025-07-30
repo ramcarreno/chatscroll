@@ -32,6 +32,10 @@ def main():
             st.error("📄❌ The file could not be parsed. Please upload a WhatsApp chat exported as a .txt file.")
             st.stop()
 
+        # Init session state parameters used elsewhere
+        st.session_state["messages"] = []
+        st.session_state["model_name"] = None
+
         # Save useful params to session state and update
         st.session_state["chatname"] = uploaded_file.name.split(".")[0]
         st.session_state["chat"] = chat
