@@ -82,7 +82,7 @@ def user():
                )
     c12.metric("Participation (% of total messages)", f"{(len(filtered_df) / len(filtered_df)) * 100:.2f}%")
     c13.metric("Active days", len(filtered_df.date.unique()),
-               help=f"**{len(filtered_df.date.unique()) / len(filtered_df.date.unique()) * 100:.2f}%** of days when "
+               help=f"**{len(filtered_df.date.unique()) / len(df.date.unique()) * 100:.2f}%** of days when "
                     f"someone participated in the chat")
 
     # Second row of metrics
