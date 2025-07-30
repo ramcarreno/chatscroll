@@ -2,8 +2,8 @@
 
 **ChatScroll** is a lightweight dashboard for analyzing WhatsApp chats. It parses a previously exported `.txt` chat file 
 and shows stats for the whole chat and individual users. It also includes a search functionality and local LLM support 
-via Ollama, so you can ask any questions about your chat—and all completely offline, meaning your data stays in your 
-device!
+via Ollama, so you can ask any questions about your chat—and all completely offline, meaning **your data stays in your 
+device**!
 
 ## Installation
 

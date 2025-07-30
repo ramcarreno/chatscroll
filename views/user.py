@@ -82,22 +82,22 @@ def user():
                )
     c12.metric("Participation (% of total messages)", f"{(len(filtered_df) / len(filtered_df)) * 100:.2f}%")
     c13.metric("Active days", len(filtered_df.date.unique()),
-               help=f"**{len(filtered_df.date.unique()) / len(filtered_df.date.unique()) * 100:.2f}%** of total active "
-                    f"chat days")
+               help=f"**{len(filtered_df.date.unique()) / len(filtered_df.date.unique()) * 100:.2f}%** of days when "
+                    f"someone participated in the chat")
 
     # Second row of metrics
     c21, c22, c23 = st.columns(3)
     c21.metric("Last message date", filtered_df["date"].max().strftime("%Y-%m-%d"))
     if word_freqs:
         top_word, top_word_count = word_freqs[0]
-        c22.metric("Top word", f"{top_word}", help=f"Used **{top_word_count}** times")
+        c22.metric("Top word", f"{top_word}", help=f"Sent **{top_word_count}** times")
     else:
         c22.metric("Top word", "None", help="**Warning**: No words outside stopword list!")
     if emoji_freqs:  # TODO: correct bug with multilayered emojis
         top_emoji, top_emoji_count = emoji_freqs.most_common(1)[0]
-        c23.metric("Top emoji", f"{top_emoji}", help=f"Used **{top_emoji_count}** times")
+        c23.metric("Top emoji", f"{top_emoji}", help=f"Sent **{top_emoji_count}** times")
     else:
-        c23.metric("Top emoji", "None", help="No emojis used during the selected time period.")
+        c23.metric("Top emoji", "None", help="No emojis sent during the selected time period.")
 
     # Wordcloud + messaging frequency plots
     st.subheader(f"📖️🕰️ What's _{selected_user}_ saying... and when?")

@@ -55,7 +55,7 @@ def main():
                 st.Page(user, title="User", icon=":material/person:", url_path="/user"),
             ],
             "Tools": [
-                st.Page(ask, title="Chat with your Chat", icon=":material/forum:", url_path="/ask"),
+                st.Page(chat2chat, title="Chat with your chat", icon=":material/forum:", url_path="/chat2chat"),
                 st.Page(search, title="Search", icon=":material/search:", url_path="/search"),
             ],
         }
