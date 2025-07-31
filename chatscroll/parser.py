@@ -43,45 +43,54 @@ class ChatParser:
         self.users: list[str] = []
         self.parse_chat()
 
-    def parse_chat(self) -> None:  # TODO: telegram support
+    def parse_chat(self) -> None:  # TODO: Add Telegram support
         """
-        Parse the chat file and extract timestamped messages and user names.
-
-        Ignores lines that don't match the expected format (e.g., system messages,
-        broken lines).
+        Parse the chat file, supporting multi-line messages by splitting on timestamps.
+        Groups message timestamps, sender users and message contents, filling chat and users containers.
+        Filters system messages, ignoring messages with no text or sender.
         """
-        # Init user container
+        # Create users set to add their names only once
         users: set[str] = set()
 
-        # Iterate over file object
-        lines = self.chat_file.readlines()
-        for line in lines:
-            line = line.strip()
+        # Start reading
+        chat_text = self.chat_file.read()
 
+        # Regex pattern to detect timestamps at the start of a message line
+        # Start dividing between timestamp and rest of message
+        timestamp_pattern = r'(\d{1,2}[./]\d{1,2}[./]\d{2,4}, \d{1,2}:\d{2}) - '
+        parts = re.split(timestamp_pattern, chat_text)
+
+        # Parts structure: ['', timestamp1, message1, timestamp2, message2, ...]
+        # So we iterate in steps of 2 starting at index 1 (timestamps) and get messages at index+1
+        for i in range(1, len(parts), 2):
+            timestamp_str = parts[i]
+            message_block = parts[i + 1].strip() if (i + 1) < len(parts) else ""
+
+            # Parse timestamp into possible dates, skipping unparseable timestamps
             try:
-                # Separate timestamp from the rest; cast to datetime
-                timestamp_str, rest = line.split(" - ", 1)
                 timestamp = parse_timestamp(timestamp_str)
-
-                # Process user & message fields
-                # TODO: manage line breaks as part of a single message
-                user, message = rest.split(":", 1)
-                user = user.strip()
-                message = re.sub(r'<[^>]+>', '', message.strip()).strip()
-
-                # Skip empty messages
-                if not message:
-                    continue
-
-                # Store elements in chat and user containers
-                users.add(user)
-                self.chat.append({
-                    "time": timestamp,
-                    "user": user,
-                    "message": message
-                })
             except ValueError:
                 continue
 
-        self.users = list(sorted(users))
+            # Split user name from message, if no separator found skip (system message)
+            if ':' not in message_block:
+                continue
 
+            user, message = message_block.split(':', 1)
+            user = user.strip()
+            message = message.strip()
+
+            # Clean system messages such as <Media ommitted> and skip empty messages
+            message = re.sub(r'<[^>]+>', '', message)
+            if not message:
+                continue
+
+            # Store elements in chat and user containers
+            users.add(user)
+            self.chat.append({
+                "time": timestamp,
+                "user": user,
+                "message": message
+            })
+
+        self.users = list(sorted(users))
