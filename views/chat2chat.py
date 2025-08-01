@@ -1,20 +1,19 @@
+import time
+
 import ollama
-from langchain_ollama import ChatOllama
 import streamlit as st
 
-
-@st.cache_resource
-def get_llm(model_name):
-    return ChatOllama(
-        model=model_name,
-        num_predict=50,
-        reasoning=False
-    )
+from chatscroll.rag import get_llm, ChatSplitter
 
 
 def chat2chat():
-    # Init page
+    # Init page and get original chat
     st.header("Chat with your chat")
+    chat = st.session_state['chat']
+
+    # Split
+    chunks = ChatSplitter().split_messages(chat)
+    # TODO: vector store
 
     # Search for locally pulled ollama models and default to first model as choice
     available_llms = [model["model"] for model in ollama.list()["models"]]
@@ -33,7 +32,9 @@ def chat2chat():
     if selected_model != st.session_state["model_name"]:
         st.session_state["model_name"] = selected_model
 
-    # Rewrite chat history everytime the page is selected
+    # Rewrite chat history everytime the page is selected (plus first "message")
+    with st.chat_message("assistant"):
+        st.write(f'Hi! So... is there anything you want to know about "{st.session_state["chatname"]}"?')
     for message in st.session_state["messages"]:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
