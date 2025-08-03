@@ -3,7 +3,7 @@ from io import StringIO
 import streamlit as st
 
 from chatscroll.parser import ChatParser
-from views import *
+from views import activity, content, user, chat2chat, search
 
 
 def main():

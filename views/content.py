@@ -1,7 +1,5 @@
-import datetime
 import re
 
-import emoji
 import pandas as pd
 import streamlit as st
 

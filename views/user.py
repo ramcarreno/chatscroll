@@ -78,8 +78,8 @@ def user():
     # First row of metrics
     c11, c12, c13 = st.columns(3)
     c11.metric("User messages", len(date_user_df),
-               help=f"**{date_user_df["word_count"].mean():.2f}** avg. words per message"
-                    f"\n\n**{date_user_df["char_count"].mean():.2f}** avg. characters per message"
+               help=f"**{date_user_df['word_count'].mean():.2f}** avg. words per message"
+                    f"\n\n**{date_user_df['char_count'].mean():.2f}** avg. characters per message"
                )
     c12.metric("Participation (% of total messages)", f"{(len(date_user_df) / len(date_df)) * 100:.2f}%")
     c13.metric("Active days", len(date_user_df.date.unique()),

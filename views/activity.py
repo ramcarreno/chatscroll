@@ -24,7 +24,7 @@ def activity():
     df = get_df(st.session_state["chat"])
 
     # General overview
-    st.subheader(f"📊 Overview of _{st.session_state["chatname"]}_") # TODO: chat name
+    st.subheader(f"📊 Overview of _{st.session_state['chatname']}_") # TODO: chat name
 
     # Calculations for first row
     start_date = df["time"].min().date()
@@ -49,7 +49,7 @@ def activity():
     # Second row of metrics
     c21, c22, c23 = st.columns(3)
     c21.metric("Messages per day",  f"{len(df) / range_days:.2f}")
-    c22.metric("% Active days", f"{(len(df["date"].unique()) / range_days)*100:.2f}%")
+    c22.metric("% Active days", f"{(len(df['date'].unique()) / range_days)*100:.2f}%")
     c23.metric("Most active day", f"{most_active_day}", help=f"**{most_active_count}** messages were sent on that day")
 
     # User/time period messaging stats
