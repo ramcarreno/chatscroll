@@ -32,17 +32,22 @@ def chat2chat():
     # Init page and get original chat
     st.header("Chat with your chat")
 
-    # Init retriever
-    with st.spinner("Loading retriever... (May take a while)", show_time=True):
-        retriever = get_retriever(retriever_type="simple")
-
     # Search for locally pulled ollama models and default to first model as choice
-    available_llms = [model["model"] for model in ollama.list()["models"]]
+    try:
+        available_llms = [model["model"] for model in ollama.list()["models"]]
+    except ConnectionError:
+        st.error("Ollama is not installed or is not accessible. Please check or install from "
+                 "https://ollama.com/download")
+        st.stop()
     if not available_llms:
         st.error("No LLMs found. Please pull a model of your choice from Ollama.")
         st.stop()
     if st.session_state["model_name"] is None:
         st.session_state["model_name"] = available_llms[0] # default to first model
+
+    # Init retriever
+    with st.spinner("Loading retriever... (May take a while)", show_time=True):
+        retriever = get_retriever(retriever_type="simple")
 
     # Create selectbox that memorizes current selection as default
     selected_model = st.selectbox(
