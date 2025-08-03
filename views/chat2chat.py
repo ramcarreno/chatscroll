@@ -5,7 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 
 from chatscroll.rag import get_llm, SimpleRetriever, FAISSRetriever
-from chatscroll.prompts import system_rag
+from chatscroll.prompts import system_rag, system_rag_refined
 
 
 @st.cache_resource
@@ -90,7 +90,7 @@ def chat2chat():
 
 def get_rag_chain(llm, retriever):
     prompt = ChatPromptTemplate.from_messages([
-        ("system", system_rag),
+        ("system", system_rag_refined),
         ("system", "Here are the chat messages: {context}"),
         ("human", "{input}")
     ])
