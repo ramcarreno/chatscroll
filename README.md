@@ -77,7 +77,7 @@ perfectly remember every detail. User queries by retrieving relevant chat contex
 responses accordingly. Specifically, it:
 
 - Retrieves 3 context chunks, each containing 10 messages relevant to the user's query.
-- Generates answers based on this context, but does **not** maintain conversation memory, meaning each query is 
+- Generates answers based on this context, but does **not** maintain conversation memory (yet), meaning each query is 
 independent of previous ones.
 
 More advanced users can customize retrieval and model settings, although there is no dedicated config file yet. Relevant
