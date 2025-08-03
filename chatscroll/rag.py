@@ -14,7 +14,6 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 def get_llm(model_name):
     return ChatOllama(
         model=model_name,
-        num_predict=256,
         temperature=0.5,
         reasoning=False
     )

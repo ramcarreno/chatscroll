@@ -36,8 +36,10 @@ def chat2chat():
     try:
         available_llms = [model["model"] for model in ollama.list()["models"]]
     except ConnectionError:
-        st.error("Ollama is not installed or is not accessible. Please check or install from "
-                 "https://ollama.com/download")
+        st.error(
+            "Oops! Ollama isn't installed or can't be accessed right now. "
+            "Please install it or check your setup. Download it here: https://ollama.com/download"
+        )
         st.stop()
     if not available_llms:
         st.error("No LLMs found. Please pull a model of your choice from Ollama.")

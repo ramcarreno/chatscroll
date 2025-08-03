@@ -1,6 +1,6 @@
 # ChatScroll 🗣️📜
 
-**ChatScroll** is a lightweight dashboard for analyzing WhatsApp chats. It parses a previously exported `.txt` chat file 
+**ChatScroll** is a dashboard app for analyzing WhatsApp chats. It parses a previously exported `.txt` chat file 
 and shows stats for the whole chat and individual users. It also includes a search functionality and local LLM support 
 via Ollama, so you can ask any questions about your chat—and all completely offline, meaning **your data stays in your 
 device**!
@@ -23,8 +23,11 @@ cd chatscroll
 poetry install
 ```
 3. If you plan on using the LLM chatting module, pull one or more Ollama models from the 
-[Ollama library](https://ollama.com/library). I recommend `llama3.1:8b` (requires around 6GB RAM) or `gemma2:2b` (≈3GB)
-if your machine is on the low end, although note it will perform worse.
+[Ollama library](https://ollama.com/library). I recommend `llama3.1:8b` (requires around 6GB RAM) or `gemma3:4b` (≈4GB)
+if your machine is on the low end, although note it will perform worse. Take a look at the
+[About the local LLM feature](#about-the-local-llm-feature) section for more details on setup and performance 
+considerations.
+
 ```bash
 ollama pull [model name]
 ```
@@ -56,6 +59,35 @@ narrow results to a specific date range in the chat.
 - **Chat with your chat** contains a LLM chat module powered by Ollama and augmented through the uploaded chat file.
 - **Search** supports keyword and regex-based message search. Results return timestamp, user, and message content in a 
 compact table.
+
+## About the local LLM feature
+
+This feature is implemented exclusively in the **Chat with your chat** page, so users can access the dashboard and 
+search pages separately. While the Ollama models can run on CPU, having at least a small GPU provides a much smoother
+user experience. Models below 2 billion parameters and reasoning models are discouraged for typical use, as they tend 
+to produce too long or lower quality outputs.
+
+If your uploaded chat is in a language other than English, it's recommended to ask questions in that same language for 
+better relevance. However, please note that LLM performance may be lower in non-English languages, depending on the model's multilingual capabilities.
+
+### Limitations and other features
+
+This feature was designed for fun and experimentation. Do not expect any models to understand ambiguous messages or 
+perfectly remember every detail. User queries by retrieving relevant chat context and prompting the model to generate 
+responses accordingly. Specifically, it:
+
+- Retrieves 3 context chunks, each containing 10 messages relevant to the user's query.
+- Generates answers based on this context, but does **not** maintain conversation memory, meaning each query is 
+independent of previous ones.
+
+More advanced users can customize retrieval and model settings, although there is no dedicated config file yet. Relevant
+source code sections include:
+
+- `chatscroll.rag`: Controls LLM parameters like temperature, chunk size and length (ChatSplitter), and number of 
+retrieved chunks per query (Retriever).
+- `views.chat2chat`: By default, a simple BM25 ranker is used for retrieval. In this module, the retriever can be 
+changed to FAISS with Hugging Face embeddings for higher-quality context. This implies longer preprocessing times for 
+large chats, however, embeddings are persisted and cached so queries remain fast.
 
 ## Notes
 
