@@ -1,19 +1,40 @@
-import time
-
 import ollama
 import streamlit as st
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 
-from chatscroll.rag import get_llm, ChatSplitter
+from chatscroll.rag import get_llm, SimpleRetriever, FAISSRetriever
+from chatscroll.prompts import system_rag
+
+
+@st.cache_resource
+def get_retriever_cached(chat, retriever_type):
+    if retriever_type == "simple":
+        return SimpleRetriever(chat)
+    elif retriever_type == "FAISS":
+        return FAISSRetriever(chat)
+
+
+def get_retriever(retriever_type):
+    # If retriever already in session state, return it
+    if "retriever" in st.session_state:
+        return st.session_state["retriever"]
+
+    # Otherwise, build retriever once and store it
+    chat = st.session_state["chat"]
+    retriever = get_retriever_cached(chat, retriever_type)
+    st.session_state["retriever"] = retriever
+    return retriever
 
 
 def chat2chat():
     # Init page and get original chat
     st.header("Chat with your chat")
-    chat = st.session_state['chat']
 
-    # Split
-    chunks = ChatSplitter().split_messages(chat)
-    # TODO: vector store
+    # Init retriever
+    with st.spinner("Loading retriever... (May take a while)", show_time=True):
+        retriever = get_retriever(retriever_type="simple")
 
     # Search for locally pulled ollama models and default to first model as choice
     available_llms = [model["model"] for model in ollama.list()["models"]]
@@ -40,22 +61,43 @@ def chat2chat():
             st.markdown(message["content"])
 
     ### CHAT LOGIC
-    if prompt := st.chat_input(placeholder="Ask anything about your conversations!"):
+    if user_input := st.chat_input(placeholder="Ask anything about your conversations!"):
         # User input: Display user message in chat message container
         with st.chat_message("user"):
-            st.markdown(prompt)
-        # Add message to chat history (in session state)
-        st.session_state["messages"].append({"role": "user", "content": prompt})
+            st.markdown(user_input)
 
-        # Assistant (LLM) output: take entire history for next response
+        # Add message to chat history (in session state)
+        st.session_state["messages"].append({"role": "user", "content": user_input})
+
+        # Load LLM for response and get RAG chain
         llm = get_llm(st.session_state["model_name"])
+        rag_chain = get_rag_chain(llm, retriever)
+
+        # Execute LLM
         try:
             with st.chat_message("assistant"):
-                stream = (x.content for x in llm.stream(st.session_state["messages"]))
-                full_response = st.write_stream(stream)
+                stream = (t for t in rag_chain.stream({"input": user_input}))
+                with st.spinner("Thinking..."):
+                    full_response = st.write_stream(stream)
+
         except ollama._types.ResponseError as e:
             st.error(f"⚠️ Oops, the model ran into an error... {e}")
             st.stop()
 
         # Add response to chat history
         st.session_state["messages"].append({"role": "assistant", "content": full_response})
+
+
+def get_rag_chain(llm, retriever):
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", system_rag),
+        ("system", "Here are the chat messages: {context}"),
+        ("human", "{input}")
+    ])
+    rag_chain = (
+            {"context": RunnableLambda(lambda d: retriever.retrieve(d["input"])), "input": RunnablePassthrough()}
+            | prompt
+            | llm
+            | StrOutputParser()
+    )
+    return rag_chain
