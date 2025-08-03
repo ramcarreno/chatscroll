@@ -3,6 +3,7 @@ import os
 from abc import ABC, abstractmethod
 
 import streamlit as st
+import torch
 from langchain.schema import Document
 from langchain_community.retrievers import BM25Retriever
 from langchain_ollama import ChatOllama
@@ -85,11 +86,13 @@ class FAISSRetriever(Retriever):
             base_index_dir="./.index_cache"
         ):
         super().__init__(passages)
+
+        device = "cuda" if torch.cuda.is_available() else "cpu"
         self.embeddings = HuggingFaceEmbeddings(
             model_name=embeddings_model,
             cache_folder="./hf_cache",
             show_progress=True,
-            model_kwargs={'device': 'cpu'},
+            model_kwargs={'device': device},
             encode_kwargs={"batch_size": 32}
         )
         if not os.path.exists(base_index_dir):
