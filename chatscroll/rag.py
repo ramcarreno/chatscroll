@@ -10,21 +10,24 @@ from langchain_ollama import ChatOllama
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
+from config.loader import SplitterConfig
+
 
 @st.cache_resource
-def get_llm(model_name):
+def get_llm(model_name, temperature):
     return ChatOllama(
         model=model_name,
-        temperature=0.5,
-        reasoning=False
+        temperature=temperature,
+        reasoning=False  # force to False in models where there is a default reasoning behavior
     )
 
 
 class ChatSplitter:
-    def __init__(self, chunk_size=10, overlap=5, max_message_length=300):
+    def __init__(self, chunk_size, chunk_overlap, max_message_length):
         self.chunk_size = chunk_size
-        self.overlap = overlap
+        self.chunk_overlap = chunk_overlap
         self.max_message_length = max_message_length
+        print(self.chunk_size, self.chunk_overlap, self.max_message_length)
 
     def split_messages(self, messages):
         chunks = []
@@ -40,9 +43,9 @@ class ChatSplitter:
             ]
             chunk_text = "\n".join(formatted)
 
-            # Save chunk as LC document and move window to next chunk - overlap position
+            # Save chunk as LC document and move window to next chunk - chunk_overlap position
             chunks.append(Document(page_content=chunk_text))
-            i += self.chunk_size - self.overlap
+            i += self.chunk_size - self.chunk_overlap
 
         return chunks
 
@@ -53,39 +56,40 @@ class ChatSplitter:
 
 
 class Retriever(ABC):
-    def __init__(self, passages):
+    def __init__(self, passages, k, splitter_config):
         self.passages = passages
+        self.k = k
         self.chunks = None
-        self._split_passages()
+        self._split_passages(splitter_config)
 
-    def _split_passages(self):
+    def _split_passages(self, config):
         # Call external splitter class with default parameters
-        self.chunks = ChatSplitter().split_messages(self.passages)
+        self.chunks = ChatSplitter(**config.model_dump()).split_messages(self.passages)
 
     @abstractmethod
-    def retrieve(self, query, k):
+    def retrieve(self, query):
         """
 
         """
 
 
 class SimpleRetriever(Retriever):
-    def __init__(self, passages):
-        super().__init__(passages)
+    def __init__(self, passages, k, splitter_config):
+        super().__init__(passages, k, splitter_config)
         self.retriever = BM25Retriever.from_documents(documents=self.chunks)
 
-    def retrieve(self, query, k=3):
-        docs = self.retriever.invoke(query)[:k]
+    def retrieve(self, query):
+        docs = self.retriever.invoke(query)[:self.k]
         return "\n\n".join(doc.page_content for doc in docs)
 
 
 class FAISSRetriever(Retriever):
     def __init__(
-            self, passages,
+            self, passages, k, splitter_config,
             embeddings_model="sentence-transformers/all-MiniLM-L6-v2",
             base_index_dir="./.index_cache"
         ):
-        super().__init__(passages)
+        super().__init__(passages, k, splitter_config)
 
         device = "cuda" if torch.cuda.is_available() else "cpu"
         self.embeddings = HuggingFaceEmbeddings(
@@ -113,6 +117,6 @@ class FAISSRetriever(Retriever):
         content_hash = hashlib.md5(text.encode('utf-8')).hexdigest()
         return os.path.join(base_dir, f"faiss_index_{content_hash}")
 
-    def retrieve(self, query, k=3):
-        docs = self.vector_store.similarity_search(query, k=k)
+    def retrieve(self, query):
+        docs = self.vector_store.similarity_search(query, k=self.k)
         return "\n\n".join(doc.page_content for doc in docs)

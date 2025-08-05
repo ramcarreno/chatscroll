@@ -3,27 +3,32 @@ import streamlit as st
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
+from pydantic import ValidationError
 
 from chatscroll.rag import get_llm, SimpleRetriever, FAISSRetriever
-from chatscroll.prompts import system_rag, system_rag_refined
+from chatscroll.prompts import system_rag_refined
+from config.loader import load_config, AppConfig
 
 
 @st.cache_resource
-def get_retriever_cached(chat, retriever_type):
-    if retriever_type == "simple":
-        return SimpleRetriever(chat)
-    elif retriever_type == "FAISS":
-        return FAISSRetriever(chat)
+def get_retriever_cached(chat, config_json: str):
+    config = AppConfig.model_validate_json(config_json)
+
+    if config.retriever.retrieval_method == "simple":
+        return SimpleRetriever(passages=chat, k=config.retriever.k, splitter_config=config.splitter)
+    elif config.retriever.retrieval_method == "FAISS":
+        return FAISSRetriever(passages=chat, k=config.retriever.k, splitter_config=config.splitter)
+    return SimpleRetriever(passages=chat, k=config.retriever.k, splitter_config=config.splitter)
 
 
-def get_retriever(retriever_type):
+def get_retriever(config_json: str):
     # If retriever already in session state, return it
     if "retriever" in st.session_state:
         return st.session_state["retriever"]
 
     # Otherwise, build retriever once and store it
     chat = st.session_state["chat"]
-    retriever = get_retriever_cached(chat, retriever_type)
+    retriever = get_retriever_cached(chat, config_json)
     st.session_state["retriever"] = retriever
     return retriever
 
@@ -32,6 +37,18 @@ def chat2chat():
     # Init page and get original chat
     st.header("Chat with your chat")
 
+    # Load LLM config
+    try:
+        config = load_config()
+    except FileNotFoundError as e:
+        st.error(str(e))
+        st.stop()
+    except ValidationError as e:
+        st.error("Config file validation failed. Refer to the JSON below:")
+        st.json(e.errors())
+        st.stop()
+
+    import ipdb; ipdb.set_trace()
     # Search for locally pulled ollama models and default to first model as choice
     try:
         available_llms = [model["model"] for model in ollama.list()["models"]]
@@ -49,7 +66,7 @@ def chat2chat():
 
     # Init retriever
     with st.spinner("Loading retriever... (May take a while)", show_time=True):
-        retriever = get_retriever(retriever_type="simple")
+        retriever = get_retriever(config.model_dump_json())
 
     # Create selectbox that memorizes current selection as default
     selected_model = st.selectbox(
@@ -77,7 +94,7 @@ def chat2chat():
         st.session_state["messages"].append({"role": "user", "content": user_input})
 
         # Load LLM for response and get RAG chain
-        llm = get_llm(st.session_state["model_name"])
+        llm = get_llm(st.session_state["model_name"], config.model.temperature)
         rag_chain = get_rag_chain(llm, retriever)
 
         # Execute LLM
@@ -102,7 +119,10 @@ def get_rag_chain(llm, retriever):
         ("human", "{input}")
     ])
     rag_chain = (
-            {"context": RunnableLambda(lambda d: retriever.retrieve(d["input"])), "input": RunnablePassthrough()}
+            {
+                "context": RunnableLambda(lambda d: retriever.retrieve(query=d["input"])),
+                "input": RunnablePassthrough()
+            }
             | prompt
             | llm
             | StrOutputParser()
