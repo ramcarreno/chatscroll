@@ -20,7 +20,8 @@ def parse_timestamp(timestamp_str: str) -> datetime.datetime:
             continue
     raise ValueError(f"Unrecognized timestamp format: {timestamp_str}")
 
-
+# TODO: Add Telegram support
+# https://github.com/ramcarreno/chatscroll/issues/1
 class ChatParser:
     """
     A parser for exported chat logs from messaging apps like WhatsApp or Telegram.
@@ -43,7 +44,7 @@ class ChatParser:
         self.users: list[str] = []
         self.parse_chat()
 
-    def parse_chat(self) -> None:  # TODO: Add Telegram support
+    def parse_chat(self) -> None:
         """
         Parse the chat file, supporting multi-line messages by splitting on timestamps.
         Groups message timestamps, sender users and message contents, filling chat and users containers.

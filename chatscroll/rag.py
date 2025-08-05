@@ -10,8 +10,6 @@ from langchain_ollama import ChatOllama
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
-from config.loader import SplitterConfig
-
 
 @st.cache_resource
 def get_llm(model_name, temperature):
@@ -27,7 +25,6 @@ class ChatSplitter:
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.max_message_length = max_message_length
-        print(self.chunk_size, self.chunk_overlap, self.max_message_length)
 
     def split_messages(self, messages):
         chunks = []
@@ -85,8 +82,7 @@ class SimpleRetriever(Retriever):
 
 class FAISSRetriever(Retriever):
     def __init__(
-            self, passages, k, splitter_config,
-            embeddings_model="sentence-transformers/all-MiniLM-L6-v2",
+            self, passages, k, splitter_config, embeddings_model,
             base_index_dir="./.index_cache"
         ):
         super().__init__(passages, k, splitter_config)

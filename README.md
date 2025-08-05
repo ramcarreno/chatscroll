@@ -70,24 +70,33 @@ to produce too long or lower quality outputs.
 If your uploaded chat is in a language other than English, it's recommended to ask questions in that same language for 
 better relevance. However, please note that LLM performance may be lower in non-English languages, depending on the model's multilingual capabilities.
 
-### Limitations and other features
+### Limitations and advanced configuration
 
 This feature was designed for fun and experimentation. Do not expect any models to understand ambiguous messages or 
-perfectly remember every detail. User queries by retrieving relevant chat context and prompting the model to generate 
-responses accordingly. Specifically, it:
+perfectly remember every detail. 
 
-- Retrieves 3 context chunks, each containing 10 messages relevant to the user's query.
-- Generates answers based on this context, but does **not** maintain conversation memory (yet), meaning each query is 
-independent of previous ones.
+When a user sends a query, the system retrieves relevant chat history chunks from the file (the _context_) and then the 
+model generates answers based on this _context_, but does **not** maintain conversation memory (yet), meaning each query 
+is independent of previous ones.
 
-More advanced users can customize retrieval and model settings, although there is no dedicated config file yet. Relevant
-source code sections include:
+More advanced users can customize model and retrieval settings in the `llm_config.yaml` file:
 
-- `chatscroll.rag`: Controls LLM parameters like temperature, chunk size and length (ChatSplitter), and number of 
-retrieved chunks per query (Retriever).
-- `views.chat2chat`: By default, a simple BM25 ranker is used for retrieval. In this module, the retriever can be 
-changed to FAISS with Hugging Face embeddings for higher-quality context. This implies longer preprocessing times for 
-large chats, however, embeddings are persisted and cached so queries remain fast.
+- **Model**
+  - `temperature` (default: `0.5`): Controls creativity of the model. Takes a minimum of `0` for highly deterministic
+  responses, values higher than `1` may produce too random outputs.
+
+- **Splitter**
+  - `chunk_size` (default: `10`):  Number of chat messages per chunk when splitting the conversation for retrieval.
+  - `chunk_overlap` (default: `3`): Number of overlapping units between chunks, used to preserve context.
+  - `max_message_length` (default: `500`): Maximum length (in characters) for each message in a chunk.
+
+- **Retriever**
+  - `retrieval_method` (default: `"bm25"`): Keyword-based retrieval method. Can either be the default (faster but less
+  powerful) or `FAISS` which retrieves chunks through semantic similarity search of dense vectors. Computing such
+  vectors for a specific chat may take longer initially, but results are persisted and cached for any future queries.
+  - `k` (default: `3`): Returns top k most relevant chunks.
+  - `embeddings_model` (default: `"sentence-transformers/all-MiniLM-L6-v2"`): Hugging Face sentence transformers model 
+  used to compute sentence embeddings when `FAISS` is selected as the retrieval method.
 
 ## Notes
 

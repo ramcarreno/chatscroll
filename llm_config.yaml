@@ -2,13 +2,14 @@
 model:
   temperature: 0.5
 
-# Retriever settings
-retriever:
-  retrieval_method: "bm25"
-  k: 5
-
 # Splitter settings (chunking)
 splitter:
   chunk_size: 10
   chunk_overlap: 3
-  max_message_length: 200
+  max_message_length: 500
+
+# Retriever settings
+retriever:
+  retrieval_method: "bm25"
+  k: 3
+  embeddings_model: "sentence-transformers/all-MiniLM-L6-v2"

@@ -17,7 +17,8 @@ def get_retriever_cached(chat, config_json: str):
     if config.retriever.retrieval_method == "simple":
         return SimpleRetriever(passages=chat, k=config.retriever.k, splitter_config=config.splitter)
     elif config.retriever.retrieval_method == "FAISS":
-        return FAISSRetriever(passages=chat, k=config.retriever.k, splitter_config=config.splitter)
+        return FAISSRetriever(passages=chat, k=config.retriever.k, splitter_config=config.splitter,
+                              embeddings_model=config.retriever.embeddings_model)
     return SimpleRetriever(passages=chat, k=config.retriever.k, splitter_config=config.splitter)
 
 

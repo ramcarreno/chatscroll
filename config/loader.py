@@ -1,18 +1,14 @@
 import os
-from typing import Literal, Optional
+from typing import Literal
 
+import streamlit as st
 import yaml
 from pydantic import BaseModel, Field, ValidationError, model_validator
-import streamlit as st
 
 
 class ModelConfig(BaseModel):
     temperature: float = Field(default=0.5, gt=0)
 
-
-class RetrieverConfig(BaseModel):
-    retrieval_method: Literal["bm25", "FAISS"] = "bm25"
-    k: int = Field(default=5, ge=1, le=50)
 
 class SplitterConfig(BaseModel):
     chunk_size: int = Field(default=10, ge=1)
@@ -28,10 +24,16 @@ class SplitterConfig(BaseModel):
         return self
 
 
+class RetrieverConfig(BaseModel):
+    retrieval_method: Literal["bm25", "FAISS"] = "bm25"
+    k: int = Field(default=3, ge=1, le=50)
+    embeddings_model: str = Field(default="sentence-transformers/all-MiniLM-L6-v2")
+
+
 class AppConfig(BaseModel):
     model: ModelConfig
-    retriever: RetrieverConfig
     splitter: SplitterConfig
+    retriever: RetrieverConfig
 
 
 @st.cache_resource
@@ -44,6 +46,6 @@ def load_config(path="llm_config.yaml") -> AppConfig:
     try:
         config = AppConfig(**raw_config)
     except ValidationError as e:
-        # handle validation errors (e.g. logging, fallback defaults)
+        # Validation errors are then caught in the Streamlit page
         raise e
     return config
