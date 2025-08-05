@@ -48,7 +48,6 @@ def chat2chat():
         st.json(e.errors())
         st.stop()
 
-    import ipdb; ipdb.set_trace()
     # Search for locally pulled ollama models and default to first model as choice
     try:
         available_llms = [model["model"] for model in ollama.list()["models"]]
