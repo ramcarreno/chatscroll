@@ -1,4 +1,5 @@
 from io import StringIO
+from typing import Any
 
 import streamlit as st
 
@@ -7,6 +8,12 @@ from views import activity, content, user, chat2chat, search
 
 
 def main():
+    """
+    Streamlit app entry point.
+
+    Initializes necessary `st.session_state` values, sets up the main application loop,
+    and defines the overall page layout and UI structure.
+    """
     st.set_page_config(
         page_title="ChatScroll",
         page_icon="🗣️",
@@ -25,8 +32,8 @@ def main():
         # Parse file and extract useful params
         f = StringIO(uploaded_file.getvalue().decode("utf-8"))
         parser = ChatParser(f)
-        chat = parser.chat
-        users = parser.users
+        chat: list[dict[str, Any]] = parser.chat
+        users: list[str] = parser.users
 
         if not chat or not users:
             st.error("📄❌ The file could not be parsed. Please upload a WhatsApp chat exported as a .txt file.")

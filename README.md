@@ -70,7 +70,7 @@ to produce too long or lower quality outputs.
 If your uploaded chat is in a language other than English, it's recommended to ask questions in that same language for 
 better relevance. However, please note that LLM performance may be lower in non-English languages, depending on the model's multilingual capabilities.
 
-### Limitations and advanced configuration
+### Limitations
 
 This feature was designed for fun and experimentation. Do not expect any models to understand ambiguous messages or 
 perfectly remember every detail. 
@@ -78,6 +78,8 @@ perfectly remember every detail.
 When a user sends a query, the system retrieves relevant chat history chunks from the file (the _context_) and then the 
 model generates answers based on this _context_, but does **not** maintain conversation memory (yet), meaning each query 
 is independent of previous ones.
+
+### Advanced configuration
 
 More advanced users can customize model and retrieval settings in the `llm_config.yaml` file:
 

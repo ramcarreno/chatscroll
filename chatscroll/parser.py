@@ -5,20 +5,35 @@ from io import StringIO
 from typing import Any
 
 
-# Timestamp parsing utils
-_TIMESTAMP_FORMATS = [
+# Timestamp parsing formats
+_TIMESTAMP_FORMATS: list[str] = [
     '%d.%m.%Y, %H:%M',
     '%d/%m/%Y, %H:%M',
     '%d/%m/%y, %H:%M',
 ]
 
 def parse_timestamp(timestamp_str: str) -> datetime.datetime:
+    """
+    Parse a timestamp string into a datetime object.
+
+    Attempts to match the input string against a list of known timestamp formats.
+
+    Args:
+        timestamp_str (str): The timestamp string to parse.
+
+    Returns:
+        datetime.datetime: The parsed datetime object.
+
+    Raises:
+        ValueError: If the timestamp string does not match any known format.
+    """
     for fmt in _TIMESTAMP_FORMATS:
         try:
             return datetime.datetime.strptime(timestamp_str.strip(), fmt)
         except ValueError:
             continue
     raise ValueError(f"Unrecognized timestamp format: {timestamp_str}")
+
 
 # TODO: Add Telegram support
 # https://github.com/ramcarreno/chatscroll/issues/1
@@ -54,22 +69,22 @@ class ChatParser:
         users: set[str] = set()
 
         # Start reading
-        chat_text = self.chat_file.read()
+        chat_text: str = self.chat_file.read()
 
         # Regex pattern to detect timestamps at the start of a message line
         # Start dividing between timestamp and rest of message
-        timestamp_pattern = r'(\d{1,2}[./]\d{1,2}[./]\d{2,4}, \d{1,2}:\d{2}) - '
-        parts = re.split(timestamp_pattern, chat_text)
+        timestamp_pattern: str = r'(\d{1,2}[./]\d{1,2}[./]\d{2,4}, \d{1,2}:\d{2}) - '
+        parts: list[str] = re.split(timestamp_pattern, chat_text)
 
         # Parts structure: ['', timestamp1, message1, timestamp2, message2, ...]
         # So we iterate in steps of 2 starting at index 1 (timestamps) and get messages at index+1
         for i in range(1, len(parts), 2):
-            timestamp_str = parts[i]
-            message_block = parts[i + 1].strip() if (i + 1) < len(parts) else ""
+            timestamp_str: str = parts[i]
+            message_block: str = parts[i + 1].strip() if (i + 1) < len(parts) else ""
 
             # Parse timestamp into possible dates, skipping unparseable timestamps
             try:
-                timestamp = parse_timestamp(timestamp_str)
+                timestamp: datetime.datetime = parse_timestamp(timestamp_str)
             except ValueError:
                 continue
 
@@ -77,6 +92,8 @@ class ChatParser:
             if ':' not in message_block:
                 continue
 
+            user: str
+            message: str
             user, message = message_block.split(':', 1)
             user = user.strip()
             message = message.strip()

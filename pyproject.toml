@@ -3,7 +3,7 @@ name = "chatscroll"
 version = "0.1.0"
 description = ""
 authors = [
-    {name = "Ramón Carreño",email = "ramcv98@gmail.com"}
+    {name = "Ramón Carreño", email = "ramcv98@gmail.com"}
 ]
 readme = "README.md"
 requires-python = ">=3.10,<4.0"

@@ -37,7 +37,20 @@ class AppConfig(BaseModel):
 
 
 @st.cache_resource
-def load_config(path="llm_config.yaml") -> AppConfig:
+def load_config(path: str = "llm_config.yaml") -> AppConfig:
+    """
+    Load the .yaml configuration file for model and retrieval advanced configuration.
+    It then validates the file against the associated Pydantic schema and returns it.
+
+    Args:
+        path (str): Path to the .yaml configuration file. Takes `llm_config.yaml` as default.
+
+    Returns:
+        AppConfig: Pydantic config model object.
+
+    Raises:
+        ValidationError: Pydantic validation error.
+    """
     if not os.path.isfile(path):
         raise FileNotFoundError(f"Hmmm, the LLM config file was not found at: {path}. Please restore it.")
 

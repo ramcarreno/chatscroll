@@ -13,8 +13,13 @@ from wordcloud import WordCloud
 def plot_user_msg_stats(df):
     """
     Plots user message counts, user average words per message and user average characters per message.
-    Takes the chat DataFrame with precomputed word_count and char_count columns that can be filtered by user.
     The three different traces of the plot are toggleable with a dropdown menu.
+
+    Args:
+        df (DataFrame): A chat DataFrame with precomputed `word_count` and `char_count` columns.
+
+    Returns:
+        go.Figure: A Plotly figure.
     """
     # Group by user message count and word/character averages
     user_talk_stats = df.groupby('user').agg(
@@ -76,8 +81,13 @@ def plot_user_msg_stats(df):
 def plot_msg_over_time(df):
     """
     Plots message counts over yearly, monthly periods and day of the week.
-    Takes the chat DataFrame with precomputed date periods and weekdays that can also be filtered by user.
     The three different traces of the plot are toggleable with a dropdown menu.
+
+    Args:
+        df (DataFrame): A chat DataFrame with precomputed `year`, `year_month` and `weekday` period columns.
+
+    Returns:
+        go.Figure: A Plotly figure.
     """
     # Group counts by time period
     by_year = df.groupby("year").agg(msg=("message", "count")).reset_index()
@@ -140,8 +150,13 @@ def plot_msg_over_time(df):
 def plot_msg_over_days(df):
     """
     Simple Plotly Express plot that tracks message frequency at the day level.
-    Takes directly 'date' and 'msg' from a pre-grouped DataFrame that can be filtered by user.
     Includes a range slider for more trackable and accurate zooming.
+
+    Args:
+        df (DataFrame): A chat DataFrame grouped by precomputed `date` column.
+
+    Returns:
+        go.Figure: A Plotly figure.
     """
     fig = px.line(
         df, x='date', y='msg',
@@ -156,7 +171,12 @@ def plot_msg_over_days(df):
 def plot_msg_over_hours(df):
     """
     Polar plot showing a clock-like representation of messaging frequency.
-    Takes directly 'hour' and 'msg' from a pre-grouped DataFrame that can be filtered by user.
+
+    Args:
+        df (DataFrame): A chat DataFrame grouped by precomputed `hour` column.
+
+    Returns:
+        go.Figure: A Plotly figure.
     """
     # Predefine hour labels
     hour_labels = [
@@ -209,6 +229,23 @@ def plot_msg_over_hours(df):
 
 
 def get_word_frequencies(df, stopwords):
+    """
+    Calculate word frequencies from a message column in a DataFrame.
+
+    Applies a `CountVectorizer` to the `message` column of the input DataFrame,
+    filters out the provided stopwords, and returns a list of words with their
+    corresponding frequencies in descending order.
+
+    Args:
+        df (DataFrame): A chat Dataframe.
+        stopwords (Any): A collection of words to exclude from counting.
+            Passed as the `stop_words` argument to `CountVectorizer`, which
+            can be either `None`, `"english"` or a `List`.
+
+    Returns:
+        List[Tuple[str, int]]: A list of (word, frequency) tuples sorted by frequency.
+                               Returns an empty list if vectorization fails.
+    """
     # Initialize the vectorizer and feed message corpus
     try:
         vectorizer = CountVectorizer(lowercase=True, stop_words=stopwords)
@@ -227,7 +264,18 @@ def get_word_frequencies(df, stopwords):
     except ValueError:
         return []
 
-def plot_wordcloud(frequencies):
+
+def plot_wordcloud(frequencies: dict[str, int]):
+    """
+    Uses the WordCloud library to create a visualization from a dictionary of word-frequency pairs.
+    The result is rendered using matplotlib.
+
+    Args:
+        frequencies (dict[str, int]): A dictionary where keys are words and values are their frequencies.
+
+    Returns:
+        plt.Figure: The matplotlib.pyplot figure containing the word cloud.
+    """
     # Generate WordCloud
     wc = WordCloud(width=800, height=400, background_color='white', colormap='tab10').generate_from_frequencies(
         frequencies
@@ -242,10 +290,32 @@ def plot_wordcloud(frequencies):
 
 
 def get_emoji_frequencies(df):
+    """
+    Count emoji frequencies in a chat DataFrame's messages.
+
+    Iterates over each message, extracts characters that are valid emojis using
+    the emoji.EMOJI_DATA dictionary, and returns a frequency count.
+
+    Args:
+        df (DataFrame): A chat DataFrame.
+
+    Returns:
+        Counter: A collections Counter mapping each emoji character to its frequency.
+    """
     return Counter(sum(df["message"].apply(lambda text: [c for c in text if c in emoji.EMOJI_DATA]), []))
 
 
-def plot_top_n_emojis(frequencies, n):
+def plot_top_n_emojis(frequencies: Counter, n: int):
+    """
+    Plot a bar chart of the top N emojis by frequency.
+
+    Args:
+        frequencies (Counter): A collections Counter mapping emojis to their frequencies.
+        n (int): Number of top emojis to plot.
+
+    Returns:
+        Figure: A Plotly figure.
+    """
     # Create plotable df from frequencies
     top_n = frequencies.most_common(n)
     df = pd.DataFrame(top_n, columns=['Emoji', 'Frequency'])

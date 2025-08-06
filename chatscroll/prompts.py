@@ -1,3 +1,7 @@
+"""
+Prompts used for LLM retrieval.
+"""
+
 system_rag = """
 You are a helpful assistant that answers questions about a pre-retrieved chat conversation.
 
