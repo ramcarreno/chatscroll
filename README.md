@@ -113,3 +113,11 @@ done to skip messages that only contain placeholders (such as `<Media omitted>`)
 ```
 Other formats might exist depending on your device's locale. If your chat can't be parsed, open an issue or let me know,
 I'll add support.
+
+## Running tests
+
+To run all tests in the `tests/` directory, simply execute:
+
+```bash
+pytest
+```
